@@ -32,14 +32,12 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
   const lastProductRef = useRef<HTMLDivElement>(null)
 
   const fetchProducts = useCallback(async () => {
-    if (!hasMore || isLoading) return
 
     setIsLoading(true)
     try {
@@ -55,6 +53,7 @@ export default function Home() {
       
       const newProducts: Product[] = response.data.products
 
+
       setProducts(prevProducts => {
         // Remove duplicates
         const uniqueProducts = [...prevProducts, ...newProducts].filter(
@@ -64,7 +63,6 @@ export default function Home() {
         return uniqueProducts
       })
       
-      setHasMore(response.data.currentPage < response.data.totalPages)
       setIsInitialLoading(false)
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -72,7 +70,7 @@ export default function Home() {
     } finally {
       setIsLoading(false)
     }
-  }, [page, hasMore, isLoading])
+  }, [page,  isLoading])
 
   useEffect(() => {
     fetchProducts()
@@ -80,20 +78,17 @@ export default function Home() {
 
   const observerCallback = useCallback((entries: IntersectionObserverEntry[]) => {
     const [entry] = entries
-    if (entry.isIntersecting && hasMore && !isLoading) {
-      // Trigger page load when second last row is encountered
+    if (entry.isIntersecting  && !isLoading) {
       setPage(prevPage => prevPage + 1)
     }
-  }, [hasMore, isLoading])
+  }, [ isLoading])
 
   useEffect(() => {
     if (!lastProductRef.current) return
 
     const observer = new IntersectionObserver(observerCallback, {
       root: null,
-      // Increased rootMargin to trigger loading earlier
-      // This ensures loading starts when user is near second last row
-      rootMargin: '300px', 
+      rootMargin: '200px',
       threshold: 0
     })
 
@@ -109,9 +104,9 @@ export default function Home() {
   }, [observerCallback, products])
 
   const filteredItems = products.filter(item => 
-    item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.era.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (item.productName && item.productName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (item.era && item.era.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (item.category && item.category.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   return (
@@ -166,7 +161,7 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div ref={containerRef} className="relative">
+          <div className="relative">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[600px]">
               {filteredItems.map((item, index) => (
                 <div 
@@ -209,25 +204,8 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Loading Indicator */}
-            <div 
-              className={`absolute bottom-0 left-0 w-full flex justify-center py-4 transition-opacity duration-300 ${
-                isLoading ? 'opacity-100 visible' : 'opacity-0 invisible'
-              }`}
-            >
-              <div className="bg-primary/10 px-4 py-2 rounded-full flex items-center space-x-2">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                <span className="text-muted-foreground">Loading more...</span>
-              </div>
-            </div>
-
+         
             {/* No Products Messages */}
-            {!hasMore && filteredItems.length === 0 && (
-              <div className="text-center py-16 text-muted-foreground">
-                <p className="text-xl">No antiques found.</p>
-              </div>
-            )}
-
             {filteredItems.length === 0 && !isLoading && (
               <div className="text-center py-16 text-muted-foreground">
                 <p className="text-xl">No antiques found matching your search.</p>

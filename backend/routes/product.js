@@ -34,8 +34,7 @@ router.post('/addproduct', authMiddleware, async (req, res) => {
 });
 
 router.get('/products', async (req, res) => {
-  // console.log("Hi");
-  const { page = 1, limit = 9 } = req.query; // Reduced limit to 6
+  const { page = 1, limit = 9 } = req.query;
 
   try {
     const products = await Product.find()
@@ -43,6 +42,15 @@ router.get('/products', async (req, res) => {
       .limit(parseInt(limit));
 
     const totalProducts = await Product.countDocuments();
+
+    if (products.length === 0) {
+      return res.status(200).send({
+        message: 'No more products available',
+        products: [],
+        totalPages: Math.ceil(totalProducts / limit),
+        currentPage: parseInt(page)
+      });
+    }
 
     res.status(200).send({
       products,
