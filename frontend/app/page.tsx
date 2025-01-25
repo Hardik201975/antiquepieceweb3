@@ -32,12 +32,13 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
-  const containerRef = useRef<HTMLDivElement>(null)
   const lastProductRef = useRef<HTMLDivElement>(null)
 
   const fetchProducts = useCallback(async () => {
+    if (!hasMore || isLoading) return
 
     setIsLoading(true)
     try {
@@ -53,6 +54,9 @@ export default function Home() {
       
       const newProducts: Product[] = response.data.products
 
+      if (response.data.message === 'No more products available') {
+        setHasMore(false)
+      }
 
       setProducts(prevProducts => {
         // Remove duplicates
@@ -70,7 +74,7 @@ export default function Home() {
     } finally {
       setIsLoading(false)
     }
-  }, [page,  isLoading])
+  }, [page, hasMore, isLoading])
 
   useEffect(() => {
     fetchProducts()
@@ -78,10 +82,10 @@ export default function Home() {
 
   const observerCallback = useCallback((entries: IntersectionObserverEntry[]) => {
     const [entry] = entries
-    if (entry.isIntersecting  && !isLoading) {
+    if (entry.isIntersecting && hasMore && !isLoading) {
       setPage(prevPage => prevPage + 1)
     }
-  }, [ isLoading])
+  }, [hasMore, isLoading])
 
   useEffect(() => {
     if (!lastProductRef.current) return
@@ -204,7 +208,23 @@ export default function Home() {
               ))}
             </div>
 
-         
+            {/* Loading Indicator */}
+            {hasMore && (
+              <div className="absolute bottom-0 left-0 w-full flex justify-center py-4">
+                <div className="bg-primary/10 px-4 py-2 rounded-full flex items-center space-x-2">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <span className="text-muted-foreground">Loading more...</span>
+                </div>
+              </div>
+            )}
+
+            {/* No More Products Message
+            {!hasMore && (
+              <div className="text-center py-16 text-muted-foreground">
+                <p className="text-xl">No more products available.</p>
+              </div>
+            )} */}
+
             {/* No Products Messages */}
             {filteredItems.length === 0 && !isLoading && (
               <div className="text-center py-16 text-muted-foreground">
