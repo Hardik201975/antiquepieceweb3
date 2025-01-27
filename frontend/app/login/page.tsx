@@ -1,3 +1,4 @@
+"use client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
@@ -5,8 +6,28 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Lock, Mail } from "lucide-react"
 import Link from 'next/link'
+import { useState } from 'react'
+import axios from 'axios'
+import { useRouter } from 'next/navigation'
 
 export default function Login() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const router = useRouter()
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const response = await axios.post('http://localhost:5000/api/login', { email, password }, { withCredentials: true })
+      if (response.status === 200) {
+        router.push('/')
+      }
+    } catch (error) {
+      setError('Invalid email or password')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -17,7 +38,7 @@ export default function Login() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleLogin}>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -27,6 +48,8 @@ export default function Login() {
                   placeholder="name@example.com" 
                   type="email" 
                   className="pl-10"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
             </div>
@@ -39,6 +62,8 @@ export default function Login() {
                   id="password" 
                   type="password" 
                   className="pl-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
             </div>
@@ -53,10 +78,10 @@ export default function Login() {
               </Button>
             </div>
 
-            <Button className="w-full">Sign in</Button>
-          </form>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
-          
+            <Button className="w-full" type="submit">Sign in</Button>
+          </form>
         </CardContent>
         <CardFooter className="justify-center">
           <p className="text-sm text-slate-500">

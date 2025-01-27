@@ -1,12 +1,20 @@
 "use client"
 import Link from 'next/link'
-import { Search, ShoppingCart, User } from 'lucide-react'
+import { Search, ShoppingCart, User, PlusCircle } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import Cookies from 'js-cookie'
 
 export function Navbar() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const token = Cookies.get('token')
+    setIsLoggedIn(!!token)
+  }, [])
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
@@ -34,11 +42,28 @@ export function Navbar() {
                 <ShoppingCart className="h-5 w-5" />
               </Button>
             </Link>
-            <Link href="/login">
-              <Button variant="outline" size="icon">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
+            {!isLoggedIn && (
+              <Link href="/login">
+                <Button variant="outline" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <PlusCircle className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
+                  <Link href="/add-antique">Add Antique Piece</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href="/my-information">My Information</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
