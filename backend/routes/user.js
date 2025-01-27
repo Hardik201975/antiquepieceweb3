@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User'); 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const authMiddleware = require('../middleware/auth');
 
 router.post('/signup', async (req, res) => {
   const { username, email, password, walletAddress } = req.body;
@@ -22,7 +23,6 @@ router.post('/signup', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  console.log("Hi")
   const { email, password } = req.body;
 
   try {
@@ -49,6 +49,18 @@ router.post('/login', async (req, res) => {
     } else {
       res.status(400).send({ message: 'Invalid email or password' });
     }
+  } catch (error) {
+    res.status(500).send({ message: 'Internal server error' });
+  }
+});
+
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).send({ message: 'User not found' });
+    }
+    res.status(200).send(user);
   } catch (error) {
     res.status(500).send({ message: 'Internal server error' });
   }

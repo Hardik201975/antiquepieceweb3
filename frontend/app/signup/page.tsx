@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useRouter } from 'next/navigation'
 
 // Zod validation schema
 const signupFormSchema = z
@@ -49,6 +50,7 @@ const signupFormSchema = z
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter()
 
   // Initialize the form
   const form = useForm<z.infer<typeof signupFormSchema>>({
@@ -67,7 +69,7 @@ export default function SignupPage() {
     setIsLoading(true);
     try {
       // Send data to backend API
-      const response = await fetch("/api/signup", {
+      const response = await fetch("http://localhost:5000/api/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -83,8 +85,8 @@ export default function SignupPage() {
       console.log("Signup Response:", data);
       alert("Signup Successful!");
 
-      // Redirect to the welcome page
-      window.location.href = "/welcome";
+      // Redirect to the login page
+      router.push("/login")
     } catch (error) {
       console.error("Signup Error:", error);
       alert("Signup Failed");

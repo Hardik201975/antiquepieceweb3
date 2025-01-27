@@ -3,18 +3,13 @@ import Link from 'next/link'
 import { Search, ShoppingCart, User, PlusCircle } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import Cookies from 'js-cookie'
+import { useAuth } from "@/context/AuthContext"
 
 export function Navbar() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-  useEffect(() => {
-    const token = Cookies.get('token')
-    setIsLoggedIn(!!token)
-  }, [])
+  const { isLoggedIn } = useAuth()
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">

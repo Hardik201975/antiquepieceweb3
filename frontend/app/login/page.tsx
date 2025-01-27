@@ -9,18 +9,21 @@ import Link from 'next/link'
 import { useState } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
+import { useAuth } from "@/context/AuthContext"
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
+  const { setIsLoggedIn } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       const response = await axios.post('http://localhost:5000/api/login', { email, password }, { withCredentials: true })
       if (response.status === 200) {
+        setIsLoggedIn(true)
         router.push('/')
       }
     } catch (error) {
