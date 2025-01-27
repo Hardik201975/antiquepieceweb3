@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { 
@@ -115,42 +114,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
-        <div className="container mx-auto flex justify-between items-center p-4">
-          <Link href="/" className="text-2xl font-bold text-primary">
-            Antique Gallery
-          </Link>
-          
-          <div className="flex items-center space-x-4">
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-              <Input 
-                placeholder="Search antiques..."
-                className="pl-10 w-64"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-2">
-              <Link href="/cart">
-                <Button variant="outline" size="icon">
-                  <ShoppingCart className="h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button variant="outline" size="icon">
-                  <User className="h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Gallery Section */}
       <main className="container mx-auto px-4 py-8 flex-grow">
         <h1 className="text-3xl font-bold mb-8 text-center">
@@ -218,13 +181,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* No More Products Message
-            {!hasMore && (
-              <div className="text-center py-16 text-muted-foreground">
-                <p className="text-xl">No more products available.</p>
-              </div>
-            )} */}
-
             {/* No Products Messages */}
             {filteredItems.length === 0 && !isLoading && (
               <div className="text-center py-16 text-muted-foreground">
@@ -234,13 +190,6 @@ export default function Home() {
           </div>
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="bg-secondary text-secondary-foreground py-6">
-        <div className="container mx-auto text-center">
-          <p>&copy; 2024 Antique Gallery. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   )
 }
