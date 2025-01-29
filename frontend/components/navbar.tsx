@@ -41,11 +41,11 @@ export function Navbar() {
 
           {/* Action Buttons */}
           <div className="flex space-x-2">
-            <Link href="/cart">
+            {/* <Link href="/cart">
               <Button variant="outline" size="icon">
                 <ShoppingCart className="h-5 w-5" />
               </Button>
-            </Link>
+            </Link> */}
             {!isLoggedIn && (
               <Link href="/login">
                 <Button variant="outline" size="icon">

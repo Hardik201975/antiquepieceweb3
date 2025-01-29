@@ -35,6 +35,30 @@ router.post('/addproduct', authMiddleware, async (req, res) => {
   }
 });
 
+router.post('/cart', authMiddleware, async (req, res) => {
+  const { productId } = req.body
+
+  try {
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(400).send({ message: 'User not found' })
+    }
+
+    const product = await Product.findById(productId)
+    if (!product) {
+      return res.status(404).send({ message: 'Product not found' })
+    }
+
+    user.cart.push(productId)
+    await user.save()
+
+    res.status(200).send({ message: 'Product added to cart successfully' })
+  } catch (error) {
+    console.log(error)
+    res.status(500).send({ message: 'Internal server error' })
+  }
+})
+
 router.get('/products', async (req, res) => {  
   const { page = 1, limit = 9 } = req.query;
 
@@ -63,5 +87,17 @@ router.get('/products', async (req, res) => {
     res.status(500).send({ message: 'Internal server error' });
   }
 });
+
+router.get('/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id)
+    if (!product) {
+      return res.status(404).send({ message: 'Product not found' })
+    }
+    res.status(200).send(product)
+  } catch (error) {
+    res.status(500).send({ message: 'Internal server error' })
+  }
+})
 
 module.exports = router;
