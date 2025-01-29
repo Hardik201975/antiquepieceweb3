@@ -5,6 +5,8 @@ const User = require('../models/User');
 const authMiddleware = require('../middleware/auth');
 
 router.post('/addproduct', authMiddleware, async (req, res) => {
+  // console.log("hi");
+  
   const { productName, productDescription, productPrice, productImage } = req.body; // Added productImage
 
   try {
@@ -33,7 +35,7 @@ router.post('/addproduct', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/products', async (req, res) => {
+router.get('/products', async (req, res) => {  
   const { page = 1, limit = 9 } = req.query;
 
   try {

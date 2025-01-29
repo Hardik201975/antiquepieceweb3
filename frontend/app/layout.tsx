@@ -3,6 +3,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { AuthProvider } from "@/context/AuthContext"
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import './globals.css'
 
 export default function RootLayout({
@@ -17,6 +19,7 @@ export default function RootLayout({
           <AuthProvider>
             <Navbar />
             {children}
+            <ToastContainer />
             <Footer />
           </AuthProvider>
         </ThemeProvider>

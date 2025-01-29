@@ -2,9 +2,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { 
-  ShoppingCart, 
-  User, 
-  Search, 
   Loader2 
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -34,7 +31,7 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
-  const lastProductRef = useRef<HTMLDivElement>(null)
+  const observerTarget = useRef<HTMLDivElement>(null)
 
   const fetchProducts = useCallback(async () => {
     if (!hasMore || isLoading) return
@@ -52,59 +49,59 @@ export default function Home() {
       })
       
       const newProducts: Product[] = response.data.products
-
-      if (response.data.message === 'No more products available') {
-        setHasMore(false)
-      }
-
-      setProducts(prevProducts => {
-        // Remove duplicates
-        const uniqueProducts = [...prevProducts, ...newProducts].filter(
-          (product, index, self) => 
-            index === self.findIndex((p) => p._id === product._id)
-        )
-        return uniqueProducts
-      })
       
-      setIsInitialLoading(false)
+      if (newProducts.length === 0 || response.data.message === 'No more products available') {
+        setHasMore(false)
+      } else {
+        setProducts(prevProducts => {
+          const uniqueProducts = [...prevProducts, ...newProducts].filter(
+            (product, index, self) => 
+              index === self.findIndex((p) => p._id === product._id)
+          )
+          return uniqueProducts
+        })
+        setPage(prev => prev + 1)
+      }
     } catch (error) {
       console.error('Error fetching products:', error)
-      setIsInitialLoading(false)
     } finally {
       setIsLoading(false)
+      setIsInitialLoading(false)
     }
   }, [page, hasMore, isLoading])
 
   useEffect(() => {
-    fetchProducts()
-  }, [page, fetchProducts])
-
-  const observerCallback = useCallback((entries: IntersectionObserverEntry[]) => {
-    const [entry] = entries
-    if (entry.isIntersecting && hasMore && !isLoading) {
-      setPage(prevPage => prevPage + 1)
+    // Initial load
+    if (isInitialLoading) {
+      fetchProducts()
     }
-  }, [hasMore, isLoading])
+  }, [fetchProducts, isInitialLoading])
 
   useEffect(() => {
-    if (!lastProductRef.current) return
+    const observer = new IntersectionObserver(
+      entries => {
+        // Only fetch more if the target is visible and we're not already loading
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          fetchProducts()
+        }
+      },
+      { 
+        root: null,
+        rootMargin: '200px',
+        threshold: 0.1
+      }
+    )
 
-    const observer = new IntersectionObserver(observerCallback, {
-      root: null,
-      rootMargin: '200px',
-      threshold: 0
-    })
-
-    if (lastProductRef.current) {
-      observer.observe(lastProductRef.current)
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current)
     }
 
     return () => {
-      if (lastProductRef.current) {
-        observer.unobserve(lastProductRef.current)
+      if (observerTarget.current) {
+        observer.disconnect()
       }
     }
-  }, [observerCallback, products])
+  }, [fetchProducts, hasMore, isLoading])
 
   const filteredItems = products.filter(item => 
     (item.productName && item.productName.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -114,7 +111,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Gallery Section */}
       <main className="container mx-auto px-4 py-8 flex-grow">
         <h1 className="text-3xl font-bold mb-8 text-center">
           Curated Antique Collection
@@ -130,10 +126,9 @@ export default function Home() {
         ) : (
           <div className="relative">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[600px]">
-              {filteredItems.map((item, index) => (
+              {filteredItems.map((item) => (
                 <div 
                   key={item._id}
-                  ref={index === filteredItems.length - 1 ? lastProductRef : null}
                   className="opacity-100 transition-opacity duration-300"
                 >
                   <Link href={`/item/${item._id}`}>
@@ -171,9 +166,15 @@ export default function Home() {
               ))}
             </div>
 
+            {/* Observer target for infinite scroll */}
+            <div 
+              ref={observerTarget}
+              className="h-10 w-full"
+            />
+
             {/* Loading Indicator */}
-            {hasMore && (
-              <div className="absolute bottom-0 left-0 w-full flex justify-center py-4">
+            {isLoading && hasMore && (
+              <div className="w-full flex justify-center py-4">
                 <div className="bg-primary/10 px-4 py-2 rounded-full flex items-center space-x-2">
                   <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   <span className="text-muted-foreground">Loading more...</span>
