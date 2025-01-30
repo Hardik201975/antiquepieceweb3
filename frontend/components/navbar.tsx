@@ -3,22 +3,34 @@ import Link from 'next/link'
 import { Search, ShoppingCart, User, PlusCircle } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/context/AuthContext"
+
+// Add type declaration for window.ethereum
+declare global {
+  interface Window {
+    ethereum: any;
+  }
+}
 
 export function Navbar() {
   const [searchTerm, setSearchTerm] = useState('')
   const { isLoggedIn } = useAuth()
-  // const [hydrated, setHydrated] = useState(false)
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
 
-  // useEffect(() => {
-  //   setHydrated(true)
-  // }, [])
-
-  // if (!hydrated) {
-  //   return null
-  // }
+  const connectWallet = async () => {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+        setWalletAddress(accounts[0])
+      } catch (error) {
+        console.error('Error connecting to wallet:', error)
+      }
+    } else {
+      alert('MetaMask is not installed. Please install it to use this feature.')
+    }
+  }
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
@@ -41,11 +53,11 @@ export function Navbar() {
 
           {/* Action Buttons */}
           <div className="flex space-x-2">
-            {/* <Link href="/cart">
+            <Link href="/cart">
               <Button variant="outline" size="icon">
                 <ShoppingCart className="h-5 w-5" />
               </Button>
-            </Link> */}
+            </Link>
             {!isLoggedIn && (
               <Link href="/login">
                 <Button variant="outline" size="icon">
@@ -68,6 +80,9 @@ export function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button onClick={connectWallet}>
+              {walletAddress ? `Connected: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'Connect to Wallet'}
+            </Button>
           </div>
         </div>
       </div>
