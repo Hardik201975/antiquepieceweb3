@@ -67,9 +67,13 @@ export default function ProductPage() {
       setTransactionLoading(true);
       const provider = new BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      
-      // Convert price to ETH assuming a fixed conversion rate (update as needed)
-      const ethAmount = ethers.parseUnits((Number(product.productPrice) / 2000 / 100).toFixed(18), 'ether');
+
+      // Fetch current ETH rate
+      const ethRateResponse = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+      const ethRate = ethRateResponse.data.ethereum.usd;
+
+      // Convert price to ETH using the current rate
+      const ethAmount = ethers.parseUnits((Number(product.productPrice) / ethRate / 100).toFixed(18), 'ether');
 
       // Create transaction object
       const tx = {
