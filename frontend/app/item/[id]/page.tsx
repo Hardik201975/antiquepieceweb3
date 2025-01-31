@@ -89,7 +89,27 @@ export default function ProductPage() {
       
       if (receipt?.status === 1) {
         alert('Payment successful! Transaction hash: ' + transaction.hash);
-        // Here you could add API call to update product status or handle success
+        
+        // Get current location
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          const { latitude, longitude } = position.coords;
+
+          // Call add-to-cart route
+          const addToCartResponse = await axios.post('http://localhost:5000/api/add-to-cart', {
+            productId: product._id,
+            deliveryLatitude: latitude,
+            deliveryLongitude: longitude
+          }, { withCredentials: true });
+
+          if (addToCartResponse.status === 200) {
+            router.push('/cart');
+          } else {
+            alert('Failed to add product to cart.');
+          }
+        }, (error) => {
+          console.error('Error getting location:', error);
+          alert('Failed to get location. Please try again.');
+        });
       } else {
         alert('Transaction failed. Please try again.');
       }

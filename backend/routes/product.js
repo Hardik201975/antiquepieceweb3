@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const Cart = require('../models/Cart');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/auth');
 
@@ -35,29 +36,48 @@ router.post('/addproduct', authMiddleware, async (req, res) => {
   }
 });
 
-router.post('/cart', authMiddleware, async (req, res) => {
-  const { productId } = req.body
+router.post('/add-to-cart', authMiddleware, async (req, res) => {
+  console.log("hi");
+  
+  const { productId, deliveryLatitude, deliveryLongitude } = req.body;
 
   try {
-    const user = await User.findById(req.user.id)
-    if (!user) {
-      return res.status(400).send({ message: 'User not found' })
-    }
-
-    const product = await Product.findById(productId)
+    // Find the product by ID
+    const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).send({ message: 'Product not found' })
+      return res.status(404).send({ message: 'Product not found' });
     }
 
-    user.cart.push(productId)
-    await user.save()
+    // Create a new cart item with the product details and delivery coordinates
+    const cartItem = new Cart({
+      productName: product.productName,
+      productDescription: product.productDescription,
+      productPrice: product.productPrice,
+      productImage: product.productImage,
+      deliveryLatitude,
+      deliveryLongitude
+    });
 
-    res.status(200).send({ message: 'Product added to cart successfully' })
+    // Save the cart item
+    const savedCartItem = await cartItem.save();
+
+    // Remove the product from the product model
+    await Product.findByIdAndDelete(productId);
+
+    // Find the user by ID and add the cart item ID to their cart
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).send({ message: 'User not found' });
+    }
+    user.myCart.push(savedCartItem._id);
+    await user.save();
+
+    res.status(200).send({ message: 'Product added to cart successfully', cartItem: savedCartItem });
   } catch (error) {
-    console.log(error)
-    res.status(500).send({ message: 'Internal server error' })
+    console.error('Error adding product to cart:', error);
+    res.status(500).send({ message: 'Internal server error' });
   }
-})
+});
 
 router.get('/products', async (req, res) => {  
   const { page = 1, limit = 9 } = req.query;
